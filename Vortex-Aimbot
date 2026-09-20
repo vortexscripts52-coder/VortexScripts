@@ -1,0 +1,291 @@
+-- =========================================
+-- ======= SISTEMA DE MANTENIMIENTO ========
+-- =========================================
+local EnMantenimiento = false -- Falso = El script funciona / Verdadero = Se bloquea
+
+if EnMantenimiento then
+    -- Puedes cambiar este print por tu interfaz visual que avisa del mantenimiento
+    print("Script en mantenimiento. Vuelve más tarde.")
+    return -- Detiene el script por completo aquí si está en mantenimiento
+end
+
+-- FINAL V22 - V21 SIN 3 TOQUES (TODO LO DEMAS IGUAL)
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+
+pcall(function() if PlayerGui:FindFirstChild("Calib") then PlayerGui.Calib:Destroy() end end)
+pcall(function() RunService:UnbindFromRenderStep("Calib") end)
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name="Calib"
+Gui.ResetOnSpawn=false
+Gui.Parent=PlayerGui
+
+local Enabled=false
+local Percent=70
+local FOV=150
+local MaxDist=250
+local AimPart="Head"
+local FovVisible=true
+local HeightOffset=1.3
+local FovOffsetX=0
+local FovOffsetY=0
+local PingLocked=false
+local BgTransparency=0.3
+
+local PingOutside=Instance.new("Frame")
+PingOutside.Size=UDim2.new(0,240,0,26)
+PingOutside.Position=UDim2.new(0.5,-120,0,10)
+PingOutside.BackgroundColor3=Color3.fromRGB(0,0,0)
+PingOutside.BackgroundTransparency=BgTransparency
+PingOutside.Active=true
+PingOutside.Draggable=true
+PingOutside.Parent=Gui
+Instance.new("UICorner",PingOutside).CornerRadius=UDim.new(0,8)
+
+local PingOutsideLabel=Instance.new("TextLabel")
+PingOutsideLabel.Size=UDim2.new(0.65,0,1,0)
+PingOutsideLabel.Position=UDim2.new(0,8,0,0)
+PingOutsideLabel.BackgroundTransparency=1
+PingOutsideLabel.Text="PING: --"
+PingOutsideLabel.Font=Enum.Font.SourceSansBold
+PingOutsideLabel.TextSize=11
+PingOutsideLabel.TextXAlignment=Enum.TextXAlignment.Left
+PingOutsideLabel.Parent=PingOutside
+
+local FpsOutsideLabel=Instance.new("TextLabel")
+FpsOutsideLabel.Size=UDim2.new(0.35,0,1,0)
+FpsOutsideLabel.Position=UDim2.new(0.65,0,0,0)
+FpsOutsideLabel.BackgroundTransparency=1
+FpsOutsideLabel.Text="FPS: --"
+FpsOutsideLabel.Font=Enum.Font.SourceSansBold
+FpsOutsideLabel.TextSize=11
+FpsOutsideLabel.TextXAlignment=Enum.TextXAlignment.Right
+FpsOutsideLabel.Parent=PingOutside
+
+local Main=Instance.new("Frame")
+Main.Size=UDim2.new(0,260,0,375)
+Main.Position=UDim2.new(0,20,0.5,-187)
+Main.BackgroundColor3=Color3.fromRGB(20,20,25)
+Main.Active=true
+Main.Draggable=true
+Main.Parent=Gui
+Instance.new("UICorner",Main).CornerRadius=UDim.new(0,10)
+
+local TopBar=Instance.new("Frame")
+TopBar.Size=UDim2.new(1,0,0,22)
+TopBar.BackgroundColor3=Color3.fromRGB(30,30,40)
+TopBar.Parent=Main
+Instance.new("UICorner",TopBar)
+
+local Title=Instance.new("TextLabel")
+Title.Size=UDim2.new(1,-60,1,0)
+Title.Position=UDim2.new(0,8,0,0)
+Title.BackgroundTransparency=1
+Title.Text="V22 - SIN OCULTAR"
+Title.Parent=TopBar
+
+local MinBtn=Instance.new("TextButton")
+MinBtn.Size=UDim2.new(0,22,0,16)
+MinBtn.Position=UDim2.new(1,-48,0,3)
+MinBtn.Text="-"
+MinBtn.Parent=TopBar
+Instance.new("UICorner",MinBtn)
+
+local CloseBtn=Instance.new("TextButton")
+CloseBtn.Size=UDim2.new(0,22,0,16)
+CloseBtn.Position=UDim2.new(1,-24,0,3)
+CloseBtn.Text="X"
+CloseBtn.BackgroundColor3=Color3.fromRGB(180,40,40)
+CloseBtn.Parent=TopBar
+Instance.new("UICorner",CloseBtn)
+
+local Content=Instance.new("Frame")
+Content.Size=UDim2.new(1,0,1,-22)
+Content.Position=UDim2.new(0,0,0,22)
+Content.BackgroundTransparency=1
+Content.Parent=Main
+
+local Toggle=Instance.new("TextButton")
+Toggle.Size=UDim2.new(1,-16,0,28)
+Toggle.Position=UDim2.new(0,8,0,4)
+Toggle.Text="AIM: APAGADO"
+Toggle.BackgroundColor3=Color3.fromRGB(180,40,40)
+Toggle.Parent=Content
+Instance.new("UICorner",Toggle)
+
+local L1=Instance.new("TextLabel") L1.Size=UDim2.new(1,-16,0,12) L1.Position=UDim2.new(0,8,0,36) L1.BackgroundTransparency=1 L1.Text="FUERZA: 70%" L1.Parent=Content
+local Minus=Instance.new("TextButton") Minus.Size=UDim2.new(0,40,0,18) Minus.Position=UDim2.new(0,8,0,50) Minus.Text="-5%" Minus.Parent=Content Instance.new("UICorner",Minus)
+local Plus=Instance.new("TextButton") Plus.Size=UDim2.new(0,40,0,18) Plus.Position=UDim2.new(0,52,0,50) Plus.Text="+5%" Plus.BackgroundColor3=Color3.fromRGB(0,200,100) Plus.Parent=Content Instance.new("UICorner",Plus)
+local L2=Instance.new("TextLabel") L2.Size=UDim2.new(1,-16,0,12) L2.Position=UDim2.new(0,8,0,72) L2.BackgroundTransparency=1 L2.Text="FOV: 150" L2.Parent=Content
+local FovMinus=Instance.new("TextButton") FovMinus.Size=UDim2.new(0,40,0,18) FovMinus.Position=UDim2.new(0,8,0,86) FovMinus.Text="FOV -" FovMinus.Parent=Content Instance.new("UICorner",FovMinus)
+local FovPlus=Instance.new("TextButton") FovPlus.Size=UDim2.new(0,40,0,18) FovPlus.Position=UDim2.new(0,52,0,86) FovPlus.Text="FOV +" FovPlus.Parent=Content Instance.new("UICorner",FovPlus)
+local HeadBtn=Instance.new("TextButton") HeadBtn.Size=UDim2.new(0,55,0,18) HeadBtn.Position=UDim2.new(0,96,0,86) HeadBtn.Text="CABEZA" HeadBtn.BackgroundColor3=Color3.fromRGB(0,150,70) HeadBtn.Parent=Content Instance.new("UICorner",HeadBtn)
+local ChestBtn=Instance.new("TextButton") ChestBtn.Size=UDim2.new(0,55,0,18) ChestBtn.Position=UDim2.new(0,155,0,86) ChestBtn.Text="PECHO" ChestBtn.Parent=Content Instance.new("UICorner",ChestBtn)
+local L3=Instance.new("TextLabel") L3.Size=UDim2.new(1,-16,0,12) L3.Position=UDim2.new(0,8,0,108) L3.BackgroundTransparency=1 L3.Text="ALTURA: 1.3" L3.Parent=Content
+local HeightMinus=Instance.new("TextButton") HeightMinus.Size=UDim2.new(0,40,0,18) HeightMinus.Position=UDim2.new(0,8,0,122) HeightMinus.Text="BAJAR" HeightMinus.Parent=Content Instance.new("UICorner",HeightMinus)
+local HeightPlus=Instance.new("TextButton") HeightPlus.Size=UDim2.new(0,40,0,18) HeightPlus.Position=UDim2.new(0,52,0,122) HeightPlus.Text="SUBIR" HeightPlus.Parent=Content Instance.new("UICorner",HeightPlus)
+local ToggleFov=Instance.new("TextButton") ToggleFov.Size=UDim2.new(0,110,0,18) ToggleFov.Position=UDim2.new(0,96,0,122) ToggleFov.Text="OCULTAR FOV" ToggleFov.Parent=Content Instance.new("UICorner",ToggleFov)
+local L4=Instance.new("TextLabel") L4.Size=UDim2.new(1,-16,0,12) L4.Position=UDim2.new(0,8,0,144) L4.BackgroundTransparency=1 L4.Text="DISTANCIA: 250" L4.Parent=Content
+local DistMinus=Instance.new("TextButton") DistMinus.Size=UDim2.new(0,50,0,18) DistMinus.Position=UDim2.new(0,8,0,158) DistMinus.Text="CERCA -" DistMinus.Parent=Content Instance.new("UICorner",DistMinus)
+local DistPlus=Instance.new("TextButton") DistPlus.Size=UDim2.new(0,50,0,18) DistPlus.Position=UDim2.new(0,62,0,158) DistPlus.Text="LEJOS +" DistPlus.Parent=Content Instance.new("UICorner",DistPlus)
+local L5=Instance.new("TextLabel") L5.Size=UDim2.new(1,-16,0,12) L5.Position=UDim2.new(0,8,0,180) L5.BackgroundTransparency=1 L5.Text="MOVER FOV: X:0 Y:0" L5.TextColor3=Color3.fromRGB(0,255,255) L5.Parent=Content
+local FovLeft=Instance.new("TextButton") FovLeft.Size=UDim2.new(0,35,0,18) FovLeft.Position=UDim2.new(0,8,0,194) FovLeft.Text="<--" FovLeft.Parent=Content Instance.new("UICorner",FovLeft)
+local FovRight=Instance.new("TextButton") FovRight.Size=UDim2.new(0,35,0,18) FovRight.Position=UDim2.new(0,47,0,194) FovRight.Text="-->" FovRight.Parent=Content Instance.new("UICorner",FovRight)
+local FovUp=Instance.new("TextButton") FovUp.Size=UDim2.new(0,35,0,18) FovUp.Position=UDim2.new(0,86,0,194) FovUp.Text="ARR" FovUp.Parent=Content Instance.new("UICorner",FovUp)
+local FovDown=Instance.new("TextButton") FovDown.Size=UDim2.new(0,35,0,18) FovDown.Position=UDim2.new(0,125,0,194) FovDown.Text="ABA" FovDown.Parent=Content Instance.new("UICorner",FovDown)
+local FovCenter=Instance.new("TextButton") FovCenter.Size=UDim2.new(0,45,0,18) FovCenter.Position=UDim2.new(0,164,0,194) FovCenter.Text="CENTRO" FovCenter.BackgroundColor3=Color3.fromRGB(0,120,200) FovCenter.Parent=Content Instance.new("UICorner",FovCenter)
+local L6=Instance.new("TextLabel") L6.Size=UDim2.new(1,-16,0,14) L6.Position=UDim2.new(0,8,0,218) L6.BackgroundTransparency=1 L6.Text="PING HUD: BLOQUEO + FONDO" L6.TextColor3=Color3.fromRGB(255,200,0) L6.Parent=Content
+local LockBtn=Instance.new("TextButton") LockBtn.Size=UDim2.new(0,118,0,20) LockBtn.Position=UDim2.new(0,8,0,234) LockBtn.Text="DESBLOQUEADO" LockBtn.BackgroundColor3=Color3.fromRGB(0,200,100) LockBtn.Parent=Content Instance.new("UICorner",LockBtn)
+local TransLabel=Instance.new("TextLabel") TransLabel.Size=UDim2.new(0,70,0,20) TransLabel.Position=UDim2.new(0,8,0,258) TransLabel.BackgroundTransparency=1 TransLabel.Text="FONDO: 70%" TransLabel.Parent=Content
+local TransMinus=Instance.new("TextButton") TransMinus.Size=UDim2.new(0,40,0,20) TransMinus.Position=UDim2.new(0,80,0,258) TransMinus.Text="MAS" TransMinus.Parent=Content Instance.new("UICorner",TransMinus)
+local TransPlus=Instance.new("TextButton") TransPlus.Size=UDim2.new(0,40,0,20) TransPlus.Position=UDim2.new(0,124,0,258) TransPlus.Text="MENOS" TransPlus.Parent=Content Instance.new("UICorner",TransPlus)
+local TransFull=Instance.new("TextButton") TransFull.Size=UDim2.new(0,50,0,20) TransFull.Position=UDim2.new(0,168,0,258) TransFull.Text="100%" TransFull.BackgroundColor3=Color3.fromRGB(0,120,200) TransFull.Parent=Content Instance.new("UICorner",TransFull)
+
+local MiniFrame=Instance.new("Frame") MiniFrame.Size=UDim2.new(0,60,0,28) MiniFrame.Position=UDim2.new(0,20,0.5,-14) MiniFrame.BackgroundColor3=Color3.fromRGB(20,20,25) MiniFrame.Visible=false MiniFrame.Parent=Gui Instance.new("UICorner",MiniFrame).CornerRadius=UDim.new(0,10)
+local MiniBtn=Instance.new("TextButton") MiniBtn.Size=UDim2.new(1,0,1,0) MiniBtn.Text="AIM" MiniBtn.BackgroundTransparency=1 MiniBtn.Parent=MiniFrame MiniFrame.Active=true MiniFrame.Draggable=true
+local FovCircle=Instance.new("Frame") FovCircle.Size=UDim2.new(0,FOV*2,0,FOV*2) FovCircle.Position=UDim2.new(0.5,-FOV,0.5,-FOV) FovCircle.BackgroundTransparency=1 FovCircle.Visible=false FovCircle.Parent=Gui local CircleStroke=Instance.new("UIStroke",FovCircle) CircleStroke.Color=Color3.fromRGB(0,200,255) CircleStroke.Thickness=2 Instance.new("UICorner",FovCircle).CornerRadius=UDim.new(1,0)
+
+local function update()
+    L1.Text="FUERZA: "..Percent.."%"
+    L2.Text="FOV: "..FOV
+    L3.Text="ALTURA: "..string.format("%.1f",HeightOffset)
+    L4.Text="DISTANCIA: "..MaxDist
+    L5.Text="MOVER FOV: X:"..FovOffsetX.." Y:"..FovOffsetY
+    FovCircle.Size=UDim2.new(0,FOV*2,0,FOV*2)
+    FovCircle.Position=UDim2.new(0.5,-FOV+FovOffsetX,0.5,-FOV+FovOffsetY)
+    TransLabel.Text="FONDO: "..math.floor((1-BgTransparency)*100).."%"
+    if Enabled then Toggle.Text="ON "..Percent.."%" Toggle.BackgroundColor3=Color3.fromRGB(0,200,70) if FovVisible then FovCircle.Visible=true end else Toggle.Text="AIM: APAGADO" Toggle.BackgroundColor3=Color3.fromRGB(180,40,40) FovCircle.Visible=false end
+end
+
+MinBtn.MouseButton1Click:Connect(function() Main.Visible=false MiniFrame.Visible=true end)
+MiniBtn.MouseButton1Click:Connect(function() Main.Visible=true MiniFrame.Visible=false end)
+CloseBtn.MouseButton1Click:Connect(function() Gui:Destroy() pcall(function() RunService:UnbindFromRenderStep("Calib") end) end)
+Toggle.MouseButton1Click:Connect(function() Enabled=not Enabled update() end)
+Minus.MouseButton1Click:Connect(function() Percent=math.max(0,Percent-5) update() end)
+Plus.MouseButton1Click:Connect(function() Percent=math.min(100,Percent+5) update() end)
+FovMinus.MouseButton1Click:Connect(function() FOV=math.max(40,FOV-10) update() end)
+FovPlus.MouseButton1Click:Connect(function() FOV=math.min(400,FOV+10) update() end)
+HeadBtn.MouseButton1Click:Connect(function() AimPart="Head" HeadBtn.BackgroundColor3=Color3.fromRGB(0,150,70) ChestBtn.BackgroundColor3=Color3.fromRGB(60,60,70) end)
+ChestBtn.MouseButton1Click:Connect(function() AimPart="HumanoidRootPart" ChestBtn.BackgroundColor3=Color3.fromRGB(0,150,70) HeadBtn.BackgroundColor3=Color3.fromRGB(60,60,70) end)
+HeightMinus.MouseButton1Click:Connect(function() HeightOffset=math.max(-1,HeightOffset-0.1) update() end)
+HeightPlus.MouseButton1Click:Connect(function() HeightOffset=math.min(3,HeightOffset+0.1) update() end)
+DistMinus.MouseButton1Click:Connect(function() MaxDist=math.max(0,MaxDist-25) update() end)
+DistPlus.MouseButton1Click:Connect(function() MaxDist=math.min(500,MaxDist+25) update() end)
+ToggleFov.MouseButton1Click:Connect(function() FovVisible=not FovVisible if FovVisible then ToggleFov.Text="OCULTAR FOV" if Enabled then FovCircle.Visible=true end else ToggleFov.Text="MOSTRAR FOV" FovCircle.Visible=false end end)
+FovLeft.MouseButton1Click:Connect(function() FovOffsetX=FovOffsetX-1 update() end)
+FovRight.MouseButton1Click:Connect(function() FovOffsetX=FovOffsetX+1 update() end)
+FovUp.MouseButton1Click:Connect(function() FovOffsetY=FovOffsetY-1 update() end)
+FovDown.MouseButton1Click:Connect(function() FovOffsetY=FovOffsetY+1 update() end)
+FovCenter.MouseButton1Click:Connect(function() FovOffsetX=0 FovOffsetY=0 update() end)
+LockBtn.MouseButton1Click:Connect(function() PingLocked=not PingLocked if PingLocked then LockBtn.Text="BLOQUEADO" LockBtn.BackgroundColor3=Color3.fromRGB(180,40,40) PingOutside.Active=false PingOutside.Draggable=false else LockBtn.Text="DESBLOQUEADO" LockBtn.BackgroundColor3=Color3.fromRGB(0,200,100) PingOutside.Active=true PingOutside.Draggable=true end end)
+TransMinus.MouseButton1Click:Connect(function() BgTransparency=math.max(0,BgTransparency-0.1) PingOutside.BackgroundTransparency=BgTransparency update() end)
+TransPlus.MouseButton1Click:Connect(function() BgTransparency=math.min(1,BgTransparency+0.1) PingOutside.BackgroundTransparency=BgTransparency update() end)
+TransFull.MouseButton1Click:Connect(function() if BgTransparency<1 then BgTransparency=1 else BgTransparency=0 end PingOutside.BackgroundTransparency=BgTransparency update() end)
+
+local fps=0
+local lastTick=tick()
+local frames=0
+local lastPingValue=0
+local lastPingChange=tick()
+local failedReads=0
+
+task.spawn(function()
+    while Gui.Parent do
+        task.wait(0.5)
+        local ping=0
+        local ok=false
+        pcall(function() local v=Stats.Network.ServerStatsItem["Data Ping"]:GetValue() if v and v>0 then ping=math.floor(v) ok=true end end)
+        if not ok or ping==0 then pcall(function() local v2=Player:GetNetworkPing()*1000 if v2 and v2>0 then ping=math.floor(v2) ok=true end end) end
+        if not ok or ping==0 then
+            failedReads=failedReads+1
+            if failedReads>=4 then PingOutsideLabel.Text="PING: SIN INTERNET" PingOutsideLabel.TextColor3=Color3.fromRGB(255,0,0) end
+        else
+            if ping==lastPingValue then
+                if tick()-lastPingChange>4 then PingOutsideLabel.Text="PING: SIN INTERNET" PingOutsideLabel.TextColor3=Color3.fromRGB(255,0,0) end
+            else
+                lastPingValue=ping lastPingChange=tick() failedReads=0
+                if ping>=999 then PingOutsideLabel.Text="PING: 999+ SIN INTERNET" PingOutsideLabel.TextColor3=Color3.fromRGB(255,0,0)
+                elseif ping>=200 then PingOutsideLabel.Text="PING: "..ping.." LENTO" PingOutsideLabel.TextColor3=Color3.fromRGB(255,255,0)
+                elseif ping>60 then PingOutsideLabel.Text="PING: "..ping.." NORMAL" PingOutsideLabel.TextColor3=Color3.fromRGB(255,255,255)
+                else PingOutsideLabel.Text="PING: "..ping.." RAPIDO" PingOutsideLabel.TextColor3=Color3.fromRGB(0,255,0) end
+            end
+        end
+        if fps>=40 then
+            FpsOutsideLabel.Text="FPS: "..fps
+            FpsOutsideLabel.TextColor3=Color3.fromRGB(0,255,0)
+        elseif fps>=25 then
+            FpsOutsideLabel.Text="FPS: "..fps
+            FpsOutsideLabel.TextColor3=Color3.fromRGB(255,255,0)
+        else
+            FpsOutsideLabel.Text="FPS: "..fps
+            FpsOutsideLabel.TextColor3=Color3.fromRGB(255,0,0)
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function() frames=frames+1 if tick()-lastTick>=1 then fps=frames frames=0 lastTick=tick() end end)
+
+local function isVisible(targetPart, targetChar)
+    local origin = Camera.CFrame.Position
+    local direction = (targetPart.Position - origin)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.FilterDescendantsInstances = {Player.Character, targetChar}
+    rayParams.IgnoreWater = true
+    local raycast = workspace:Raycast(origin, direction, rayParams)
+    if raycast then return false else return true end
+end
+
+local function getTarget()
+    local myChar=Player.Character
+    if not myChar then return nil end
+    local hrpMy=myChar:FindFirstChild("HumanoidRootPart")
+    if not hrpMy then return nil end
+    local closest=nil
+    local dMin=9999
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr~=Player and plr.Character then
+            if Player.Team and plr.Team and Player.Team == plr.Team then
+                continue
+            end
+            local hum=plr.Character:FindFirstChildOfClass("Humanoid")
+            local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
+            local head = plr.Character:FindFirstChild(AimPart) or hrp
+            if hum and hrp and head and hum.Health>0 then
+                local dist3D=(hrp.Position-hrpMy.Position).Magnitude
+                if dist3D<=MaxDist then
+                    local sp,on=Camera:WorldToViewportPoint(hrp.Position)
+                    if on then
+                        local fovC=Vector2.new(Camera.ViewportSize.X/2+FovOffsetX, Camera.ViewportSize.Y/2+FovOffsetY)
+                        local sDist=(Vector2.new(sp.X,sp.Y)-fovC).Magnitude
+                        if sDist<=FOV then
+                            if isVisible(head, plr.Character) then
+                                if sDist<dMin then dMin=sDist closest=plr end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService:BindToRenderStep("Calib",Enum.RenderPriority.Camera.Value+1,function()
+    if not Enabled or Percent==0 then return end
+    local t=getTarget()
+    if t and t.Character then
+        local p=t.Character:FindFirstChild(AimPart) or t.Character:FindFirstChild("HumanoidRootPart")
+        if p then
+            local s=(Percent/100)*0.9
+            local tp=p.Position+Vector3.new(0,HeightOffset,0)+p.Velocity*0.18
+            Camera.CFrame=Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position,tp),s)
+        end
+    end
+end)
+update()
