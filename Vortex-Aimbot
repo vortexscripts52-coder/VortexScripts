@@ -1,14 +1,3 @@
--- =========================================
--- ======= SISTEMA DE MANTENIMIENTO ========
--- =========================================
-local EnMantenimiento = false -- Falso = El script funciona / Verdadero = Se bloquea
-
-if EnMantenimiento then
-    -- Puedes cambiar este print por tu interfaz visual que avisa del mantenimiento
-    print("Script en mantenimiento. Vuelve más tarde.")
-    return -- Detiene el script por completo aquí si está en mantenimiento
-end
-
 -- FINAL V22 - V21 SIN 3 TOQUES (TODO LO DEMAS IGUAL)
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
