@@ -1,0 +1,560 @@
+--========================================================
+-- VORTEX | MOVIMIENTO PEQUEÑO + NOCLIP + FLY + TROMPO + BYPASS + FUEGO
+--========================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local Player = Players.LocalPlayer
+
+local MovementEnabled = false
+local NoclipEnabled = false
+local FlyEnabled = false
+local TrompoEnabled = false
+local BypassEnabled = false
+
+local BoostSpeed = 40
+local TrompoSpeed = 50
+local FlySpeed = 50
+local MinFlySpeed = 16
+local MaxFlySpeed = 1000
+
+local MovingForward = false
+local MovingBack = false
+local MovingLeft = false
+local MovingRight = false
+local MovingUp = false
+local MovingDown = false
+
+local Character
+local Humanoid
+local RootPart
+
+local FlyAttachment
+local FlyPosition
+local FlyOrientation
+
+local ScreenGui, FlyControls, VerticalControls
+
+local function DisableFly()
+if FlyPosition then FlyPosition:Destroy() FlyPosition = nil end
+if FlyOrientation then FlyOrientation:Destroy() FlyOrientation = nil end
+if FlyAttachment then FlyAttachment:Destroy() FlyAttachment = nil end
+if RootPart then
+	RootPart.AssemblyLinearVelocity = Vector3.zero
+	RootPart.AssemblyAngularVelocity = Vector3.zero
+end
+end
+
+local function EnableFly()
+if not RootPart then return end
+DisableFly()
+FlyAttachment = Instance.new("Attachment")
+FlyAttachment.Parent = RootPart
+FlyPosition = Instance.new("AlignPosition")
+FlyPosition.Attachment0 = FlyAttachment
+FlyPosition.Mode = Enum.PositionAlignmentMode.OneAttachment
+FlyPosition.Position = RootPart.Position
+FlyPosition.MaxForce = 1000000
+FlyPosition.Responsiveness = 200
+FlyPosition.Parent = RootPart
+FlyOrientation = Instance.new("AlignOrientation")
+FlyOrientation.Attachment0 = FlyAttachment
+FlyOrientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
+FlyOrientation.CFrame = RootPart.CFrame
+FlyOrientation.MaxTorque = 1000000
+FlyOrientation.Responsiveness = 200
+FlyOrientation.Parent = RootPart
+end
+
+local function OnCharacterAdded(NewCharacter)
+Character = NewCharacter
+Humanoid = Character:WaitForChild("Humanoid")
+RootPart = Character:WaitForChild("HumanoidRootPart")
+MovingForward = false
+MovingBack = false
+MovingLeft = false
+MovingRight = false
+MovingUp = false
+MovingDown = false
+if FlyEnabled then
+	task.wait(0.1)
+	EnableFly()
+	if FlyControls then FlyControls.Visible = true end
+	if VerticalControls then VerticalControls.Visible = true end
+end
+if TrompoEnabled then
+	task.wait(0.1)
+	Humanoid.AutoRotate = false
+end
+end
+
+Player.CharacterAdded:Connect(OnCharacterAdded)
+if Player.Character then OnCharacterAdded(Player.Character) end
+
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local OldGui = PlayerGui:FindFirstChild("VortexMovement")
+if OldGui then OldGui:Destroy() end
+
+ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VortexMovement"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+-- NOTIFICACION BYPASS 5s
+local notifFrame = Instance.new("Frame", ScreenGui)
+notifFrame.Size = UDim2.new(0, 300, 0, 40)
+notifFrame.Position = UDim2.new(0.5, -150, 0, -60)
+notifFrame.BackgroundColor3 = Color3.fromRGB(10,10,20)
+notifFrame.BorderSizePixel = 0
+notifFrame.Visible = false
+notifFrame.ZIndex = 10
+Instance.new("UICorner", notifFrame).CornerRadius = UDim.new(0, 8)
+
+local notifStroke = Instance.new("UIStroke", notifFrame)
+notifStroke.Color = Color3.fromRGB(0,255,150)
+notifStroke.Thickness = 2
+notifStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+local notifText = Instance.new("TextLabel", notifFrame)
+notifText.Size = UDim2.new(1, -20, 1, 0)
+notifText.Position = UDim2.new(0, 10, 0, 0)
+notifText.BackgroundTransparency = 1
+notifText.Text = ""
+notifText.TextColor3 = Color3.fromRGB(255,255,255)
+notifText.Font = Enum.Font.GothamBold
+notifText.TextSize = 11
+notifText.ZIndex = 11
+notifText.Parent = notifFrame
+
+local function showBypassAnimation()
+	notifFrame.Visible = true
+	notifFrame.Position = UDim2.new(0.5, -150, 0, -60)
+	notifStroke.Color = Color3.fromRGB(0,255,150)
+	local tweenIn = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -150, 0, 15)})
+	tweenIn:Play()
+	notifText.Text = "Activando Bypass..."
+	task.wait(5)
+	notifText.Text = "Revisando Anti-Cheat..."
+	TweenService:Create(notifStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255,200,0)}):Play()
+	task.wait(5)
+	notifText.Text = "El Bypass Se Activo Correctamente ✅"
+	TweenService:Create(notifStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(0,255,100)}):Play()
+	task.wait(5)
+	local tweenOut = TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -150, 0, -60)})
+	tweenOut:Play()
+	tweenOut.Completed:Wait()
+	notifFrame.Visible = false
+end
+
+-- PANEL PEQUEÑO
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 220, 0, 310)
+Main.Position = UDim2.new(0.5, -110, 0.5, -155)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Main.Parent = ScreenGui
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+
+-- FUEGO ANIMADO BORDE
+local fireBorder = Instance.new("UIStroke", Main)
+fireBorder.Thickness = 2.5
+fireBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+fireBorder.Color = Color3.fromRGB(255,100,0)
+
+local fireGradient = Instance.new("UIGradient", fireBorder)
+fireGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255,50,0)),
+	ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255,150,0)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,255,0)),
+	ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255,100,0)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255,0,0))
+})
+fireGradient.Rotation = 0
+
+task.spawn(function()
+	while true do
+		if Main.Visible then
+			fireGradient.Rotation = (fireGradient.Rotation + 3) % 360
+			local r = 200 + math.random(0,55)
+			local g = 50 + math.random(0,100)
+			fireBorder.Color = Color3.fromRGB(r,g,0)
+		end
+		task.wait(0.05)
+	end
+end)
+
+local scale = Instance.new("UIScale")
+scale.Scale = 0.75
+scale.Parent = Main
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -32, 0, 32)
+Title.Position = UDim2.new(0, 7, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "VORTEX | MOVIMIENTO"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 12
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Main
+
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.new(0, 28, 0, 28)
+Minimize.Position = UDim2.new(1, -32, 0, 2)
+Minimize.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+Minimize.Text = "-"
+Minimize.TextColor3 = Color3.fromRGB(255, 255, 255)
+Minimize.TextSize = 18
+Minimize.Font = Enum.Font.GothamBold
+Minimize.Parent = Main
+Instance.new("UICorner", Minimize).CornerRadius = UDim.new(0, 6)
+
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Size = UDim2.new(1, -8, 1, -38)
+Scroll.Position = UDim2.new(0, 4, 0, 34)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel = 0
+Scroll.ScrollBarThickness = 3
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 480)
+Scroll.Parent = Main
+
+local function CreateButton(Name, Text, Y)
+local Button = Instance.new("TextButton")
+Button.Name = Name
+Button.Size = UDim2.new(1, -16, 0, 32)
+Button.Position = UDim2.new(0, 8, 0, Y)
+Button.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+Button.BorderSizePixel = 0
+Button.Text = Text
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextSize = 11
+Button.Font = Enum.Font.GothamBold
+Button.Parent = Scroll
+Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 6)
+return Button
+end
+
+local BypassButton = CreateButton("BypassButton", "BYPASS: OFF", 4)
+BypassButton.BackgroundColor3 = Color3.fromRGB(40,40,50)
+
+local BoostLabel = Instance.new("TextLabel")
+BoostLabel.Size = UDim2.new(0, 110, 0, 22)
+BoostLabel.Position = UDim2.new(0, 8, 0, 42)
+BoostLabel.BackgroundTransparency = 1
+BoostLabel.Text = "BOOST:"
+BoostLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+BoostLabel.TextSize = 10
+BoostLabel.Font = Enum.Font.GothamBold
+BoostLabel.TextXAlignment = Enum.TextXAlignment.Left
+BoostLabel.Parent = Scroll
+
+local BoostBox = Instance.new("TextBox")
+BoostBox.Size = UDim2.new(0, 60, 0, 22)
+BoostBox.Position = UDim2.new(1, -68, 0, 42)
+BoostBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+BoostBox.Text = tostring(BoostSpeed)
+BoostBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+BoostBox.TextSize = 11
+BoostBox.Font = Enum.Font.GothamBold
+BoostBox.ClearTextOnFocus = false
+BoostBox.Parent = Scroll
+Instance.new("UICorner", BoostBox).CornerRadius = UDim.new(0, 5)
+
+BoostBox.FocusLost:Connect(function()
+local Number = tonumber(BoostBox.Text)
+if Number then BoostSpeed = math.clamp(Number, 16, 1000) end
+BoostBox.Text = tostring(BoostSpeed)
+end)
+
+local MovementButton = CreateButton("MovementButton", "MOVIMIENTO: OFF", 70)
+local NoclipButton = CreateButton("NoclipButton", "NOCLIP: OFF", 108)
+
+local TrompoLabel = Instance.new("TextLabel")
+TrompoLabel.Size = UDim2.new(0, 110, 0, 22)
+TrompoLabel.Position = UDim2.new(0, 8, 0, 146)
+TrompoLabel.BackgroundTransparency = 1
+TrompoLabel.Text = "TROMPO:"
+TrompoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TrompoLabel.TextSize = 10
+TrompoLabel.Font = Enum.Font.GothamBold
+TrompoLabel.TextXAlignment = Enum.TextXAlignment.Left
+TrompoLabel.Parent = Scroll
+
+local TrompoFrame = Instance.new("Frame")
+TrompoFrame.Size = UDim2.new(0, 85, 0, 22)
+TrompoFrame.Position = UDim2.new(1, -76, 0, 146)
+TrompoFrame.BackgroundTransparency = 1
+TrompoFrame.Parent = Scroll
+
+local MinusBtn = Instance.new("TextButton")
+MinusBtn.Size = UDim2.new(0, 22, 0, 22)
+MinusBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+MinusBtn.Text = "-"
+MinusBtn.TextColor3 = Color3.new(1, 1, 1)
+MinusBtn.TextSize = 15
+MinusBtn.Font = Enum.Font.GothamBold
+MinusBtn.Parent = TrompoFrame
+Instance.new("UICorner", MinusBtn).CornerRadius = UDim.new(0, 5)
+
+local TrompoBox = Instance.new("TextBox")
+TrompoBox.Size = UDim2.new(0, 31, 0, 22)
+TrompoBox.Position = UDim2.new(0, 24, 0, 0)
+TrompoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+TrompoBox.Text = tostring(TrompoSpeed)
+TrompoBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TrompoBox.TextSize = 10
+TrompoBox.Font = Enum.Font.GothamBold
+TrompoBox.ClearTextOnFocus = false
+TrompoBox.Parent = TrompoFrame
+Instance.new("UICorner", TrompoBox).CornerRadius = UDim.new(0, 5)
+
+local PlusBtn = Instance.new("TextButton")
+PlusBtn.Size = UDim2.new(0, 22, 0, 22)
+PlusBtn.Position = UDim2.new(0, 57, 0, 0)
+PlusBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+PlusBtn.Text = "+"
+PlusBtn.TextColor3 = Color3.new(1, 1, 1)
+PlusBtn.TextSize = 15
+PlusBtn.Font = Enum.Font.GothamBold
+PlusBtn.Parent = TrompoFrame
+Instance.new("UICorner", PlusBtn).CornerRadius = UDim.new(0, 5)
+
+MinusBtn.MouseButton1Click:Connect(function()
+TrompoSpeed = math.clamp(TrompoSpeed - 5, 5, 100)
+TrompoBox.Text = tostring(TrompoSpeed)
+end)
+
+PlusBtn.MouseButton1Click:Connect(function()
+TrompoSpeed = math.clamp(TrompoSpeed + 5, 5, 100)
+TrompoBox.Text = tostring(TrompoSpeed)
+end)
+
+TrompoBox.FocusLost:Connect(function()
+local Num = tonumber(TrompoBox.Text)
+if Num then TrompoSpeed = math.clamp(Num, 5, 100) end
+TrompoBox.Text = tostring(TrompoSpeed)
+end)
+
+local TrompoButton = CreateButton("TrompoButton", "TROMPO: OFF", 174)
+
+local FlyLabel = Instance.new("TextLabel")
+FlyLabel.Size = UDim2.new(0, 110, 0, 22)
+FlyLabel.Position = UDim2.new(0, 8, 0, 212)
+FlyLabel.BackgroundTransparency = 1
+FlyLabel.Text = "FLY:"
+FlyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyLabel.TextSize = 10
+FlyLabel.Font = Enum.Font.GothamBold
+FlyLabel.TextXAlignment = Enum.TextXAlignment.Left
+FlyLabel.Parent = Scroll
+
+local FlyBox = Instance.new("TextBox")
+FlyBox.Size = UDim2.new(0, 60, 0, 22)
+FlyBox.Position = UDim2.new(1, -68, 0, 212)
+FlyBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+FlyBox.Text = tostring(FlySpeed)
+FlyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyBox.TextSize = 11
+FlyBox.Font = Enum.Font.GothamBold
+FlyBox.ClearTextOnFocus = false
+FlyBox.Parent = Scroll
+Instance.new("UICorner", FlyBox).CornerRadius = UDim.new(0, 5)
+
+FlyBox.FocusLost:Connect(function()
+local Number = tonumber(FlyBox.Text)
+if Number then FlySpeed = math.clamp(Number, MinFlySpeed, MaxFlySpeed) end
+FlyBox.Text = tostring(FlySpeed)
+end)
+
+local FlyButton = CreateButton("FlyButton", "FLY: OFF", 240)
+
+FlyControls = Instance.new("Frame")
+FlyControls.Name = "FlyControls"
+FlyControls.Size = UDim2.new(0, 115, 0, 115)
+FlyControls.Position = UDim2.new(0, 10, 1, -125)
+FlyControls.BackgroundTransparency = 1
+FlyControls.Visible = false
+FlyControls.Parent = ScreenGui
+
+VerticalControls = Instance.new("Frame")
+VerticalControls.Name = "VerticalControls"
+VerticalControls.Size = UDim2.new(0, 65, 0, 105)
+VerticalControls.Position = UDim2.new(1, -75, 1, -125)
+VerticalControls.BackgroundTransparency = 1
+VerticalControls.Visible = false
+VerticalControls.Parent = ScreenGui
+
+local function CreateFlyControl(Text, Size, Position, Parent)
+local Button = Instance.new("TextButton")
+Button.Size = Size
+Button.Position = Position
+Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+Button.Text = Text
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextScaled = true
+Button.Parent = Parent
+Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
+return Button
+end
+
+local ForwardButton = CreateFlyControl("▲", UDim2.new(0, 38, 0, 38), UDim2.new(0, 38, 0, 0), FlyControls)
+local BackButton = CreateFlyControl("▼", UDim2.new(0, 38, 0, 38), UDim2.new(0, 38, 0, 77), FlyControls)
+local LeftButton = CreateFlyControl("◀", UDim2.new(0, 38, 0, 38), UDim2.new(0, 0, 0, 38), FlyControls)
+local RightButton = CreateFlyControl("▶", UDim2.new(0, 38, 0, 38), UDim2.new(0, 76, 0, 38), FlyControls)
+local UpButton = CreateFlyControl("SUBIR", UDim2.new(0, 65, 0, 45), UDim2.new(0, 0, 0, 0), VerticalControls)
+local DownButton = CreateFlyControl("BAJAR", UDim2.new(0, 65, 0, 45), UDim2.new(0, 0, 0, 55), VerticalControls)
+
+local function SetupHoldButton(Button, SetState)
+Button.MouseButton1Down:Connect(function() SetState(true) end)
+Button.MouseButton1Up:Connect(function() SetState(false) end)
+Button.InputEnded:Connect(function() SetState(false) end)
+end
+
+SetupHoldButton(ForwardButton, function(State) MovingForward = State end)
+SetupHoldButton(BackButton, function(State) MovingBack = State end)
+SetupHoldButton(LeftButton, function(State) MovingLeft = State end)
+SetupHoldButton(RightButton, function(State) MovingRight = State end)
+SetupHoldButton(UpButton, function(State) MovingUp = State end)
+SetupHoldButton(DownButton, function(State) MovingDown = State end)
+
+BypassButton.MouseButton1Click:Connect(function()
+BypassEnabled = not BypassEnabled
+if BypassEnabled then
+	BypassButton.Text = "BYPASS: ON"
+	BypassButton.BackgroundColor3 = Color3.fromRGB(50, 180, 90)
+	task.spawn(function() showBypassAnimation() end)
+else
+	BypassButton.Text = "BYPASS: OFF"
+	BypassButton.BackgroundColor3 = Color3.fromRGB(40,40,50)
+end
+end)
+
+MovementButton.MouseButton1Click:Connect(function()
+if not BypassEnabled then pcall(function() Player:Kick("Desconectado") end) return end
+MovementEnabled = not MovementEnabled
+MovementButton.Text = MovementEnabled and "MOVIMIENTO: ON" or "MOVIMIENTO: OFF"
+MovementButton.BackgroundColor3 = MovementEnabled and Color3.fromRGB(50, 180, 90) or Color3.fromRGB(180, 50, 50)
+end)
+
+NoclipButton.MouseButton1Click:Connect(function()
+if not BypassEnabled then pcall(function() Player:Kick("Desconectado") end) return end
+NoclipEnabled = not NoclipEnabled
+NoclipButton.Text = NoclipEnabled and "NOCLIP: ON" or "NOCLIP: OFF"
+NoclipButton.BackgroundColor3 = NoclipEnabled and Color3.fromRGB(50, 180, 90) or Color3.fromRGB(180, 50, 50)
+end)
+
+TrompoButton.MouseButton1Click:Connect(function()
+if not BypassEnabled then pcall(function() Player:Kick("Desconectado") end) return end
+TrompoEnabled = not TrompoEnabled
+TrompoButton.Text = TrompoEnabled and "TROMPO: ON" or "TROMPO: OFF"
+TrompoButton.BackgroundColor3 = TrompoEnabled and Color3.fromRGB(50, 180, 90) or Color3.fromRGB(180, 50, 50)
+if Humanoid then Humanoid.AutoRotate = not TrompoEnabled end
+end)
+
+FlyButton.MouseButton1Click:Connect(function()
+if not BypassEnabled then pcall(function() Player:Kick("Desconectado") end) return end
+FlyEnabled = not FlyEnabled
+FlyControls.Visible = FlyEnabled
+VerticalControls.Visible = FlyEnabled
+if FlyEnabled then EnableFly()
+else
+	MovingForward = false
+	MovingBack = false
+	MovingLeft = false
+	MovingRight = false
+	MovingUp = false
+	MovingDown = false
+	DisableFly()
+end
+FlyButton.Text = FlyEnabled and "FLY: ON" or "FLY: OFF"
+FlyButton.BackgroundColor3 = FlyEnabled and Color3.fromRGB(50, 180, 90) or Color3.fromRGB(180, 50, 50)
+end)
+
+local function GetTrompoRPS(Percent)
+if Percent <= 50 then return (Percent / 50) * 10
+else
+local T = (Percent - 50) / 50
+return 10 + (T * T * 90)
+end
+end
+
+RunService.RenderStepped:Connect(function(DeltaTime)
+if not RootPart or not Humanoid then return end
+if TrompoEnabled then
+	local RPS = GetTrompoRPS(TrompoSpeed)
+	local DegreesPerSecond = RPS * 360
+	RootPart.CFrame = RootPart.CFrame * CFrame.Angles(0, math.rad(DegreesPerSecond * DeltaTime), 0)
+end
+if MovementEnabled and not FlyEnabled then
+	local Direction = Humanoid.MoveDirection
+	local FlatDirection = Vector3.new(Direction.X, 0, Direction.Z)
+	if FlatDirection.Magnitude > 0.001 then
+		FlatDirection = FlatDirection.Unit
+		local FinalSpeed = math.max(Humanoid.WalkSpeed, BoostSpeed)
+		RootPart.AssemblyLinearVelocity = Vector3.new(FlatDirection.X * FinalSpeed, RootPart.AssemblyLinearVelocity.Y, FlatDirection.Z * FinalSpeed)
+		if not TrompoEnabled then
+			RootPart.CFrame = CFrame.lookAt(RootPart.Position, RootPart.Position + FlatDirection)
+		end
+	else
+		local Velocity = RootPart.AssemblyLinearVelocity
+		RootPart.AssemblyLinearVelocity = Vector3.new(0, Velocity.Y, 0)
+	end
+end
+if FlyEnabled then
+	local Camera = workspace.CurrentCamera
+	if Camera and FlyPosition then
+		local Direction = Vector3.zero
+		local Look = Camera.CFrame.LookVector
+		local Right = Camera.CFrame.RightVector
+		local Forward = Vector3.new(Look.X, 0, Look.Z).Unit
+		local Side = Vector3.new(Right.X, 0, Right.Z).Unit
+		if MovingForward then Direction += Forward end
+		if MovingBack then Direction -= Forward end
+		if MovingLeft then Direction -= Side end
+		if MovingRight then Direction += Side end
+		if MovingUp then Direction += Vector3.new(0, 1, 0) end
+		if MovingDown then Direction -= Vector3.new(0, 1, 0) end
+		if Direction.Magnitude > 0 then
+			FlyPosition.Position = FlyPosition.Position + Direction.Unit * FlySpeed * DeltaTime
+		end
+	end
+end
+end)
+
+RunService.Stepped:Connect(function()
+if not Character then return end
+for _, Object in ipairs(Character:GetDescendants()) do
+	if Object:IsA("BasePart") then Object.CanCollide = not NoclipEnabled end
+end
+end)
+
+local Minimized = false
+local OpenSize = Main.Size
+Minimize.MouseButton1Click:Connect(function()
+Minimized = not Minimized
+if Minimized then
+	Main.Size = UDim2.new(0, 150, 0, 32)
+	Scroll.Visible = false
+	Minimize.Text = "+"
+else
+	Main.Size = OpenSize
+	Scroll.Visible = true
+	Minimize.Text = "-"
+end
+end)
+
+local mt = getrawmetatable(game)
+setreadonly(mt, false)
+local old = mt.__namecall
+mt.__namecall = newcclosure(function(self,...)
+	local method = getnamecallmethod()
+	if method == "Kick" and self == Player then
+		if BypassEnabled then return nil end
+	end
+	return old(self,...)
+end)
+setreadonly(mt, true)
