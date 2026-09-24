@@ -1,0 +1,252 @@
+-- HITBOX V4.1 FIX - OFF SI O SI RESTAURA NORMAL
+local Players=game:GetService("Players")
+local Player=Players.LocalPlayer
+local PlayerGui=Player:WaitForChild("PlayerGui")
+
+if PlayerGui:FindFirstChild("HitboxNoFreeze") then PlayerGui.HitboxNoFreeze:Destroy() end
+
+local ScreenGui=Instance.new("ScreenGui") ScreenGui.Name="HitboxNoFreeze" ScreenGui.ResetOnSpawn=false ScreenGui.Parent=PlayerGui
+
+local Main=Instance.new("Frame",ScreenGui) Main.Size=UDim2.new(0,210,0,360) Main.Position=UDim2.new(0.5,-105,0,80) Main.BackgroundColor3=Color3.fromRGB(25,25,30) Main.Active=true Main.Draggable=true Instance.new("UICorner",Main).CornerRadius=UDim.new(0,10)
+local Stroke=Instance.new("UIStroke",Main) Stroke.Color=Color3.fromRGB(255,50,50) Stroke.Thickness=2
+
+local TitleBar=Instance.new("Frame",Main) TitleBar.Size=UDim2.new(1,0,0,25) TitleBar.BackgroundColor3=Color3.fromRGB(35,35,45) Instance.new("UICorner",TitleBar)
+local Title=Instance.new("TextLabel",TitleBar) Title.Size=UDim2.new(0.7,0,1,0) Title.Position=UDim2.new(0,5,0,0) Title.BackgroundTransparency=1 Title.Text="🔴 HITBOX V4.1 FIX" Title.TextColor3=Color3.fromRGB(255,80,80) Title.Font=Enum.Font.GothamBlack Title.TextSize=11 Title.TextXAlignment=Enum.TextXAlignment.Left
+local MinBtn=Instance.new("TextButton",TitleBar) MinBtn.Size=UDim2.new(0,25,0,25) MinBtn.Position=UDim2.new(1,-55,0,0) MinBtn.Text="-" MinBtn.BackgroundColor3=Color3.fromRGB(60,60,70) MinBtn.TextColor3=Color3.new(1,1,1) MinBtn.Font=Enum.Font.GothamBlack MinBtn.TextSize=14 Instance.new("UICorner",MinBtn)
+local CloseBtn=Instance.new("TextButton",TitleBar) CloseBtn.Size=UDim2.new(0,25,0,25) CloseBtn.Position=UDim2.new(1,-27,0,0) CloseBtn.Text="X" CloseBtn.BackgroundColor3=Color3.fromRGB(80,30,30) CloseBtn.TextColor3=Color3.new(1,1,1) CloseBtn.Font=Enum.Font.GothamBold CloseBtn.TextSize=10 Instance.new("UICorner",CloseBtn)
+
+local Content=Instance.new("Frame",Main) Content.Name="Content" Content.Size=UDim2.new(1,0,1,-25) Content.Position=UDim2.new(0,0,0,25) Content.BackgroundTransparency=1
+
+local HeadLabel=Instance.new("TextLabel",Content) HeadLabel.Size=UDim2.new(1,0,0,15) HeadLabel.Position=UDim2.new(0,0,0,0) HeadLabel.BackgroundTransparency=1 HeadLabel.Text="CABEZA: 12" HeadLabel.TextColor3=Color3.new(1,1,1) HeadLabel.Font=Enum.Font.GothamBold HeadLabel.TextSize=10
+local HeadFrame=Instance.new("Frame",Content) HeadFrame.Size=UDim2.new(1,-10,0,26) HeadFrame.Position=UDim2.new(0,5,0,15) HeadFrame.BackgroundTransparency=1
+local HM=Instance.new("TextButton",HeadFrame) HM.Size=UDim2.new(0.25,0,1,0) HM.Text="-" HM.BackgroundColor3=Color3.fromRGB(60,60,70) HM.TextColor3=Color3.new(1,1,1) HM.Font=Enum.Font.GothamBlack HM.TextSize=16 Instance.new("UICorner",HM)
+local HS=Instance.new("TextLabel",HeadFrame) HS.Size=UDim2.new(0.5,0,1,0) HS.Position=UDim2.new(0.25,0,0,0) HS.BackgroundColor3=Color3.fromRGB(35,35,45) HS.Text="12" HS.TextColor3=Color3.fromRGB(255,80,80) HS.Font=Enum.Font.GothamBlack HS.TextSize=12 Instance.new("UICorner",HS)
+local HP=Instance.new("TextButton",HeadFrame) HP.Size=UDim2.new(0.25,0,1,0) HP.Position=UDim2.new(0.75,0,0,0) HP.Text="+" HP.BackgroundColor3=Color3.fromRGB(60,60,70) HP.TextColor3=Color3.new(1,1,1) HP.Font=Enum.Font.GothamBlack HP.TextSize=16 Instance.new("UICorner",HP)
+
+local BodyLabel=Instance.new("TextLabel",Content) BodyLabel.Size=UDim2.new(1,0,0,15) BodyLabel.Position=UDim2.new(0,0,0,44) BodyLabel.BackgroundTransparency=1 BodyLabel.Text="TORSO: 12 (NO HRP)" BodyLabel.TextColor3=Color3.new(1,1,1) BodyLabel.Font=Enum.Font.GothamBold BodyLabel.TextSize=10
+local BodyFrame=Instance.new("Frame",Content) BodyFrame.Size=UDim2.new(1,-10,0,26) BodyFrame.Position=UDim2.new(0,5,0,59) BodyFrame.BackgroundTransparency=1
+local BM=Instance.new("TextButton",BodyFrame) BM.Size=UDim2.new(0.25,0,1,0) BM.Text="-" BM.BackgroundColor3=Color3.fromRGB(60,60,70) BM.TextColor3=Color3.new(1,1,1) BM.Font=Enum.Font.GothamBlack BM.TextSize=16 Instance.new("UICorner",BM)
+local BS=Instance.new("TextLabel",BodyFrame) BS.Size=UDim2.new(0.5,0,1,0) BS.Position=UDim2.new(0.25,0,0,0) BS.BackgroundColor3=Color3.fromRGB(35,35,45) BS.Text="12" BS.TextColor3=Color3.fromRGB(255,80,80) BS.Font=Enum.Font.GothamBlack BS.TextSize=12 Instance.new("UICorner",BS)
+local BP=Instance.new("TextButton",BodyFrame) BP.Size=UDim2.new(0.25,0,1,0) BP.Position=UDim2.new(0.75,0,0,0) BP.Text="+" BP.BackgroundColor3=Color3.fromRGB(60,60,70) BP.TextColor3=Color3.new(1,1,1) BP.Font=Enum.Font.GothamBlack BP.TextSize=16 Instance.new("UICorner",BP)
+
+local VisLabel=Instance.new("TextLabel",Content) VisLabel.Size=UDim2.new(1,0,0,15) VisLabel.Position=UDim2.new(0,0,0,89) VisLabel.BackgroundTransparency=1 VisLabel.Text="🔴 VISIBILIDAD: 0% (INVISIBLE)" VisLabel.TextColor3=Color3.fromRGB(255,100,100) VisLabel.Font=Enum.Font.GothamBold VisLabel.TextSize=9
+local VisFrame=Instance.new("Frame",Content) VisFrame.Size=UDim2.new(1,-10,0,26) VisFrame.Position=UDim2.new(0,5,0,104) VisFrame.BackgroundTransparency=1
+local VisMinus=Instance.new("TextButton",VisFrame) VisMinus.Size=UDim2.new(0.25,0,1,0) VisMinus.Text="-10%" VisMinus.BackgroundColor3=Color3.fromRGB(80,30,30) VisMinus.TextColor3=Color3.new(1,1,1) VisMinus.Font=Enum.Font.GothamBold VisMinus.TextSize=8 Instance.new("UICorner",VisMinus)
+local VisDisplay=Instance.new("TextLabel",VisFrame) VisDisplay.Size=UDim2.new(0.5,0,1,0) VisDisplay.Position=UDim2.new(0.25,0,0,0) VisDisplay.BackgroundColor3=Color3.fromRGB(45,20,20) VisDisplay.Text="0%" VisDisplay.TextColor3=Color3.fromRGB(255,80,80) VisDisplay.Font=Enum.Font.GothamBlack VisDisplay.TextSize=11 Instance.new("UICorner",VisDisplay)
+local VisPlus=Instance.new("TextButton",VisFrame) VisPlus.Size=UDim2.new(0.25,0,1,0) VisPlus.Position=UDim2.new(0.75,0,0,0) VisPlus.Text="+10%" VisPlus.BackgroundColor3=Color3.fromRGB(120,30,30) VisPlus.TextColor3=Color3.new(1,1,1) VisPlus.Font=Enum.Font.GothamBold VisPlus.TextSize=8 Instance.new("UICorner",VisPlus)
+
+local VisPresets=Instance.new("Frame",Content) VisPresets.Size=UDim2.new(1,-10,0,22) VisPresets.Position=UDim2.new(0,5,0,133) VisPresets.BackgroundTransparency=1
+local InvisBtn=Instance.new("TextButton",VisPresets) InvisBtn.Size=UDim2.new(0.33,-2,1,0) InvisBtn.Text="👻 0% INVISIBLE" InvisBtn.BackgroundColor3=Color3.fromRGB(0,120,60) InvisBtn.TextColor3=Color3.new(1,1,1) InvisBtn.Font=Enum.Font.GothamBold InvisBtn.TextSize=7 Instance.new("UICorner",InvisBtn)
+local LowBtn=Instance.new("TextButton",VisPresets) LowBtn.Size=UDim2.new(0.33,-2,1,0) LowBtn.Position=UDim2.new(0.33,1,0,0) LowBtn.Text="👁️ 10% BAJO" LowBtn.BackgroundColor3=Color3.fromRGB(50,50,60) LowBtn.TextColor3=Color3.new(1,1,1) LowBtn.Font=Enum.Font.GothamBold LowBtn.TextSize=7 Instance.new("UICorner",LowBtn)
+local FullBtn=Instance.new("TextButton",VisPresets) FullBtn.Size=UDim2.new(0.33,-2,1,0) FullBtn.Position=UDim2.new(0.66,2,0,0) FullBtn.Text="🔴 100% VISIBLE" FullBtn.BackgroundColor3=Color3.fromRGB(50,50,60) FullBtn.TextColor3=Color3.new(1,1,1) FullBtn.Font=Enum.Font.GothamBold FullBtn.TextSize=7 Instance.new("UICorner",FullBtn)
+
+local Info=Instance.new("TextLabel",Content) Info.Size=UDim2.new(1,0,0,24) Info.Position=UDim2.new(0,0,0,158) Info.BackgroundTransparency=1 Info.Text="🔴 Hitbox Roja | 0% = invisible | 10-100% = rojo" Info.TextColor3=Color3.fromRGB(255,150,150) Info.Font=Enum.Font.GothamBold Info.TextSize=7
+
+local Toggle=Instance.new("TextButton",Content) Toggle.Size=UDim2.new(1,-10,0,32) Toggle.Position=UDim2.new(0,5,0,185) Toggle.BackgroundColor3=Color3.fromRGB(40,40,50) Toggle.Text="HITBOX: OFF" Toggle.TextColor3=Color3.fromRGB(255,80,80) Toggle.Font=Enum.Font.GothamBold Toggle.TextSize=11 Instance.new("UICorner",Toggle)
+local HeadOnlyBtn=Instance.new("TextButton",Content) HeadOnlyBtn.Size=UDim2.new(1,-10,0,22) HeadOnlyBtn.Position=UDim2.new(0,5,0,222) HeadOnlyBtn.BackgroundColor3=Color3.fromRGB(30,60,30) HeadOnlyBtn.Text="MODO: CABEZA + TORSO" HeadOnlyBtn.TextColor3=Color3.new(1,1,1) HeadOnlyBtn.Font=Enum.Font.GothamBold HeadOnlyBtn.TextSize=8 Instance.new("UICorner",HeadOnlyBtn)
+local Reset=Instance.new("TextButton",Content) Reset.Size=UDim2.new(1,-10,0,22) Reset.Position=UDim2.new(0,5,0,248) Reset.BackgroundColor3=Color3.fromRGB(50,30,30) Reset.Text="RESET NORMAL" Reset.TextColor3=Color3.new(1,1,1) Reset.Font=Enum.Font.GothamBold Reset.TextSize=9 Instance.new("UICorner",Reset)
+
+local headValue=12
+local bodyValue=12
+local visibility=0
+local mode="both"
+local enabled=false
+local minimized=false
+local original={}
+
+local function getTorso(char)
+    return char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("LowerTorso")
+end
+
+-- 🔥 FIX: FUNCION QUE RESTAURA SI O SI A NORMAL
+local function restorePlayer(plr)
+    pcall(function()
+        if not plr.Character then return end
+        local char=plr.Character
+        local head=char:FindFirstChild("Head")
+        local torso=getTorso(char)
+        
+        if head and original[plr.Name.."_H_Size"] then
+            head.Size=original[plr.Name.."_H_Size"]
+            head.Transparency=original[plr.Name.."_H_Trans"] or 0
+            head.Color=original[plr.Name.."_H_Color"] or Color3.fromRGB(255,255,255)
+            head.Material=Enum.Material.SmoothPlastic
+            head.CanCollide=true
+            head.Massless=false
+        elseif head then
+            -- Si no hay original guardado, forzar tamaño normal de Roblox
+            head.Size=Vector3.new(2,1,1)
+            head.Transparency=0
+            head.Color=Color3.fromRGB(255,255,255)
+            head.Material=Enum.Material.SmoothPlastic
+        end
+        
+        if torso and original[plr.Name.."_T_Size"] then
+            torso.Size=original[plr.Name.."_T_Size"]
+            torso.Transparency=original[plr.Name.."_T_Trans"] or 0
+            torso.Color=original[plr.Name.."_T_Color"] or Color3.fromRGB(255,255,255)
+            torso.Material=Enum.Material.SmoothPlastic
+            torso.CanCollide=true
+            torso.Massless=false
+        elseif torso then
+            torso.Size=Vector3.new(2,2,1)
+            torso.Transparency=0
+            torso.Color=Color3.fromRGB(255,255,255)
+            torso.Material=Enum.Material.SmoothPlastic
+        end
+    end)
+end
+
+local function restoreAll()
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr~=Player then
+            restorePlayer(plr)
+        end
+    end
+end
+
+local function apply()
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr~=Player and plr.Character then
+            local char=plr.Character
+            local head=char:FindFirstChild("Head")
+            local torso=getTorso(char)
+            
+            if head and (mode=="both" or mode=="head") then
+                if not original[plr.Name.."_H_Size"] then 
+                    original[plr.Name.."_H_Size"]=head.Size
+                    original[plr.Name.."_H_Trans"]=head.Transparency
+                    original[plr.Name.."_H_Color"]=head.Color
+                end
+                pcall(function()
+                    head.Size=Vector3.new(headValue,headValue,headValue)
+                    head.CanCollide=false
+                    head.Massless=true
+                    if visibility==0 then
+                        head.Transparency=1
+                    else
+                        head.Transparency= 1 - (visibility/100)
+                        head.Color=Color3.fromRGB(255,0,0)
+                        head.Material=Enum.Material.ForceField
+                    end
+                end)
+            end
+            
+            if torso and (mode=="both" or mode=="torso") then
+                if not original[plr.Name.."_T_Size"] then 
+                    original[plr.Name.."_T_Size"]=torso.Size
+                    original[plr.Name.."_T_Trans"]=torso.Transparency
+                    original[plr.Name.."_T_Color"]=torso.Color
+                end
+                pcall(function()
+                    torso.Size=Vector3.new(bodyValue,bodyValue,bodyValue)
+                    torso.CanCollide=false
+                    torso.Massless=true
+                    if visibility==0 then
+                        torso.Transparency=1
+                    else
+                        torso.Transparency= 1 - (visibility/100)
+                        torso.Color=Color3.fromRGB(255,0,0)
+                        torso.Material=Enum.Material.ForceField
+                    end
+                end)
+            end
+        end
+    end
+end
+
+local function updateVisibility(newVis)
+    visibility=math.clamp(newVis,0,100)
+    if visibility>0 and visibility<10 then visibility=10 end
+    VisDisplay.Text=visibility.."%"
+    if visibility==0 then
+        VisLabel.Text="🔴 VISIBILIDAD: 0% (INVISIBLE TOTAL)"
+        VisLabel.TextColor3=Color3.fromRGB(80,255,120)
+        VisDisplay.BackgroundColor3=Color3.fromRGB(20,60,20)
+        InvisBtn.BackgroundColor3=Color3.fromRGB(0,120,60)
+        LowBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+        FullBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+    elseif visibility<=30 then
+        VisLabel.Text="🔴 VISIBILIDAD: "..visibility.."% (CASI INVISIBLE)"
+        VisLabel.TextColor3=Color3.fromRGB(255,200,100)
+        VisDisplay.BackgroundColor3=Color3.fromRGB(60,40,20)
+        InvisBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+        LowBtn.BackgroundColor3=Color3.fromRGB(120,80,0)
+        FullBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+    else
+        VisLabel.Text="🔴 VISIBILIDAD: "..visibility.."% (ROJA VISIBLE)"
+        VisLabel.TextColor3=Color3.fromRGB(255,80,80)
+        VisDisplay.BackgroundColor3=Color3.fromRGB(60,20,20)
+        InvisBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+        LowBtn.BackgroundColor3=Color3.fromRGB(50,50,60)
+        FullBtn.BackgroundColor3=Color3.fromRGB(120,20,20)
+    end
+    if enabled then apply() end
+end
+
+-- Loop solo cuando esta ON
+task.spawn(function()
+    while true do
+        task.wait(0.8)
+        if enabled then pcall(apply) end
+    end
+end)
+
+HP.MouseButton1Click:Connect(function() headValue=math.clamp(headValue+1,1,30) HS.Text=tostring(headValue) HeadLabel.Text="CABEZA: "..headValue if enabled then apply() end end)
+HM.MouseButton1Click:Connect(function() headValue=math.clamp(headValue-1,1,30) HS.Text=tostring(headValue) HeadLabel.Text="CABEZA: "..headValue if enabled then apply() end end)
+BP.MouseButton1Click:Connect(function() bodyValue=math.clamp(bodyValue+1,1,30) BS.Text=tostring(bodyValue) BodyLabel.Text="TORSO: "..bodyValue.." (NO HRP)" if enabled then apply() end end)
+BM.MouseButton1Click:Connect(function() bodyValue=math.clamp(bodyValue-1,1,30) BS.Text=tostring(bodyValue) BodyLabel.Text="TORSO: "..bodyValue.." (NO HRP)" if enabled then apply() end end)
+VisMinus.MouseButton1Click:Connect(function() if visibility==0 then return end if visibility==10 then updateVisibility(0) else updateVisibility(visibility-10) end end)
+VisPlus.MouseButton1Click:Connect(function() if visibility==0 then updateVisibility(10) else updateVisibility(visibility+10) end end)
+InvisBtn.MouseButton1Click:Connect(function() updateVisibility(0) end)
+LowBtn.MouseButton1Click:Connect(function() updateVisibility(10) end)
+FullBtn.MouseButton1Click:Connect(function() updateVisibility(100) end)
+
+HeadOnlyBtn.MouseButton1Click:Connect(function()
+    if mode=="both" then mode="head" HeadOnlyBtn.Text="MODO: SOLO CABEZA (MÁS SEGURO)" BodyLabel.TextColor3=Color3.fromRGB(100,100,100)
+    elseif mode=="head" then mode="torso" HeadOnlyBtn.Text="MODO: SOLO TORSO" HeadLabel.TextColor3=Color3.fromRGB(100,100,100) BodyLabel.TextColor3=Color3.new(1,1,1)
+    else mode="both" HeadOnlyBtn.Text="MODO: CABEZA + TORSO" HeadLabel.TextColor3=Color3.new(1,1,1) BodyLabel.TextColor3=Color3.new(1,1,1) end
+    if enabled then apply() end
+end)
+
+-- 🔥 FIX OFF SI O SI
+Toggle.MouseButton1Click:Connect(function()
+    enabled=not enabled
+    if enabled then
+        Toggle.Text="HITBOX: ON - ROJA "..visibility.."%"
+        Toggle.TextColor3=Color3.fromRGB(255,80,80)
+        Toggle.BackgroundColor3=Color3.fromRGB(80,20,20)
+        Stroke.Color=Color3.fromRGB(255,0,0)
+        apply()
+    else
+        Toggle.Text="HITBOX: OFF - RESTAURANDO..."
+        Toggle.TextColor3=Color3.fromRGB(150,150,150)
+        Toggle.BackgroundColor3=Color3.fromRGB(40,40,50)
+        Stroke.Color=Color3.fromRGB(255,50,50)
+        -- RESTAURAR SI O SI 3 VECES PARA QUE SE APLIQUE
+        restoreAll()
+        task.wait(0.2)
+        restoreAll()
+        task.wait(0.2)
+        restoreAll()
+        Toggle.Text="HITBOX: OFF"
+    end
+end)
+
+Reset.MouseButton1Click:Connect(function() 
+    enabled=false
+    headValue=12 bodyValue=12 
+    HS.Text="12" BS.Text="12" 
+    HeadLabel.Text="CABEZA: 12" BodyLabel.Text="TORSO: 12 (NO HRP)" 
+    updateVisibility(0) 
+    restoreAll()
+    task.wait(0.1)
+    restoreAll()
+    Toggle.Text="HITBOX: OFF"
+end)
+
+MinBtn.MouseButton1Click:Connect(function() minimized=not minimized if minimized then Content.Visible=false Main.Size=UDim2.new(0,210,0,25) MinBtn.Text="+" else Content.Visible=true Main.Size=UDim2.new(0,210,0,360) MinBtn.Text="-" end end)
+CloseBtn.MouseButton1Click:Connect(function() restoreAll() ScreenGui:Destroy() end)
+
+updateVisibility(0)
+print("HITBOX V4.1 FIX OFF SI O SI CARGADO - SI CUENTA DAÑO")
